@@ -2,12 +2,23 @@ type YoutubeListResponse =
   GoogleAppsScript.YouTube.Schema.PlaylistListResponse
   | GoogleAppsScript.YouTube.Schema.SubscriptionListResponse;
 
-const youTubeClient = (() => {
+export type RetVal = {
+  id: string | undefined;
+  value: { title: string | undefined; uploadsPlaylistId: string } | string | undefined;
+};
+
+export interface Video {
+  id: string | undefined;
+  title: string | undefined;
+  publishedAt: string | undefined;
+}
+
+export const youTubeClient = (() => {
 
   const MAX_BATCH = 50;
 
-  function addVideoToPlaylist(videoId: string, playlistId: string) {
-    const requestBody = {
+  function addVideoToPlaylist(videoId: string | undefined, playlistId: string) {
+    const requestBody: GoogleAppsScript.YouTube.Schema.PlaylistItem = {
       snippet: {
         playlistId: playlistId,
         resourceId: {
@@ -21,18 +32,22 @@ const youTubeClient = (() => {
   }
 
   function getChannelsByIds(channelIds: string[]) {
-    return _fetchBatchedData(channelIds, YouTube?.Channels.list, 'contentDetails,snippet', item => ({
-        id: item.id,
-        value: {
-          title: item.snippet?.title,
-          // @ts-ignore
-          uploadsPlaylistId: item.contentDetails?.relatedPlaylists.uploads
-        }
-      })
-    );
+    if (YouTube) {
+      return _fetchBatchedData<GoogleAppsScript.YouTube.Schema.Channel,
+        GoogleAppsScript.YouTube.Schema.ChannelListResponse>(channelIds, YouTube.Channels.list, 'contentDetails,snippet', item => ({
+          id: item.id,
+          value: {
+            title: item.snippet?.title,
+            // @ts-ignore
+            uploadsPlaylistId: item.contentDetails?.relatedPlaylists.uploads
+          }
+        })
+      );
+    }
+    console.error('Youtube not initialized');
   }
 
-  function getLatestVideosByPlaylistId(playlistId: string) {
+  function getLatestVideosByPlaylistId(playlistId: string): Video[] | undefined {
     const response = YouTube?.PlaylistItems.list('contentDetails,snippet', {
       playlistId: playlistId,
       maxResults: MAX_BATCH
@@ -46,11 +61,16 @@ const youTubeClient = (() => {
   }
 
   function getPlaylistsByIds(playlistIds: string[]) {
-    return _fetchBatchedData(playlistIds, YouTube?.Playlists.list, 'snippet', item => ({
-        id: item.id,
-        value: item.snippet?.title
-      })
-    );
+    if (YouTube) {
+      return _fetchBatchedData<GoogleAppsScript.YouTube.Schema.Playlist,
+        GoogleAppsScript.YouTube.Schema.PlaylistListResponse>(playlistIds, YouTube.Playlists.list, 'snippet', item => ({
+          id: item.id,
+          value: item.snippet?.title
+        })
+      );
+    }
+
+    console.error('Youtube not initialized');
   }
 
   function listUserPlaylists() {
@@ -72,19 +92,16 @@ const youTubeClient = (() => {
     }));
   }
 
-  type  RetVal = { title: string | undefined, uploadsPlaylistId: string } | string | undefined;
-
-  function _fetchBatchedData(ids: string[], apiOperation: {
-    (part: string): GoogleAppsScript.YouTube.Schema.ChannelListResponse;
-    (part: string, optionalArgs: object): GoogleAppsScript.YouTube.Schema.ChannelListResponse
-  } | undefined | {
-    (part: string): GoogleAppsScript.YouTube.Schema.PlaylistListResponse;
-    (part: string, optionalArgs: object): GoogleAppsScript.YouTube.Schema.PlaylistListResponse
-  }, apiPart: any, transformOperation: (item: GoogleAppsScript.YouTube.Schema.Channel | GoogleAppsScript.YouTube.Schema.Playlist) => {
-    id: string | undefined;
-    value: { title: string | undefined, uploadsPlaylistId: string } | string | undefined;
-  }) {
-    const result: Record<string, RetVal> = {};
+  function _fetchBatchedData<TItem, TResponse extends { items?: TItem[] | undefined }>(
+    ids: string[],
+    apiOperation: {
+      (part: string): TResponse;
+      (part: string, optionalArgs: object): TResponse;
+    },
+    apiPart: string,
+    transformOperation: (item: TItem) => RetVal
+  ): RetVal[] {
+    const result: RetVal[] = [];
 
     if (apiOperation) {
       for (let i = 0; i < ids.length; i += MAX_BATCH) {
@@ -93,27 +110,30 @@ const youTubeClient = (() => {
           maxResults: MAX_BATCH
         });
 
-        response.items?.forEach(item => {
-          const {id, value} = transformOperation(item);
-          if (typeof id === 'string') {
-            result[id] = value;
-          }
-        });
+        const transformed = response.items?.map((item: TItem) => {
+          return transformOperation(item);
+        }) ?? [];
+
+        result.concat(transformed);
       }
     }
 
     return result;
   }
 
-  function _fetchPaginatedData(apiOperation: {
-    (part: string): GoogleAppsScript.YouTube.Schema.PlaylistListResponse;
-    (part: string, optionalArgs: object): GoogleAppsScript.YouTube.Schema.PlaylistListResponse
-  } | undefined | {
-    (part: string): GoogleAppsScript.YouTube.Schema.SubscriptionListResponse;
-    (part: string, optionalArgs: object): GoogleAppsScript.YouTube.Schema.SubscriptionListResponse
-  }, apiPart: any, apiParameters: {
-    mine: boolean
-  }): GoogleAppsScript.YouTube.Schema.Playlist[] | GoogleAppsScript.YouTube.Schema.Subscription[] {
+  function _fetchPaginatedData(
+    apiOperation: {
+      (part: string): GoogleAppsScript.YouTube.Schema.PlaylistListResponse;
+      (part: string, optionalArgs: object): GoogleAppsScript.YouTube.Schema.PlaylistListResponse
+    } | {
+      (part: string): GoogleAppsScript.YouTube.Schema.SubscriptionListResponse;
+      (part: string, optionalArgs: object): GoogleAppsScript.YouTube.Schema.SubscriptionListResponse
+    } | undefined,
+    apiPart: string,
+    apiParameters: {
+      mine: boolean
+    }
+  ): GoogleAppsScript.YouTube.Schema.Playlist[] | GoogleAppsScript.YouTube.Schema.Subscription[] {
     let result: GoogleAppsScript.YouTube.Schema.Playlist[] | GoogleAppsScript.YouTube.Schema.Subscription[] = [];
     let nextPageToken = null;
 

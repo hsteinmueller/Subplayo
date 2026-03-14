@@ -4,5 +4,5 @@
  */
 function createTimeDrivenTriggers() {
   // Trigger every 6 hours.
-  ScriptApp.newTrigger("myFunction").timeBased().atHour(0).create();
+  ScriptApp.newTrigger('myFunction').timeBased().atHour(0).create();
 }

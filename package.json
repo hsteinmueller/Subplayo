@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "scripts": {
     "login": "clasp login",
     "clone": "clasp clone",

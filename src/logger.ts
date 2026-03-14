@@ -1,17 +1,17 @@
-const ChannelSkipReason = Object.freeze({
-  NOT_FOUND: 'Channel not found on server',
-  LIST_UNAVAILABLE: 'Could not retrieve video list',
-  NO_VIDEOS: 'Channel has no videos'
-});
+export enum ChannelSkipReason {
+  NOT_FOUND = 'Channel not found on server',
+  LIST_UNAVAILABLE = 'Could not retrieve video list',
+  NO_VIDEOS = 'Channel has no videos'
+};
 
-const logger = (() => {
+export const logger = (() => {
   const PLAYLIST_ID_DISPLAY_WIDTH = 34;
 
   function logPlaylistsFetching() {
     console.info('→ Fetching playlists from YouTube');
   }
 
-  function logPlaylistsFetchFailure(reason: string) {
+  function logPlaylistsFetchFailure(reason: string | undefined) {
     console.error('  → Failed to fetch playlists');
     console.error(`    → Reason: ${reason}`);
   }
@@ -20,7 +20,7 @@ const logger = (() => {
     console.info('→ Fetching channels from YouTube');
   }
 
-  function logChannelsFetchFailure(reason: string) {
+  function logChannelsFetchFailure(reason: string | undefined) {
     console.error('  → Failed to fetch channels');
     console.error(`    → Reason: ${reason}`);
   }
@@ -34,11 +34,11 @@ const logger = (() => {
     console.warn(`  → Reason: Playlist not found on server`);
   }
 
-  function logChannelChecking(channelTitle: string) {
+  function logChannelChecking(channelTitle: string | undefined) {
     console.info(`  → Checking channel: ${channelTitle}`);
   }
 
-  function logChannelSkipping(channelIdentifier: string, reason: string) {
+  function logChannelSkipping(channelIdentifier: string |undefined, reason: ChannelSkipReason) {
     console.warn(`  → Skipping channel: ${channelIdentifier}`);
     console.warn(`    → Reason: ${reason}`);
   }
@@ -54,21 +54,21 @@ const logger = (() => {
     );
   }
 
-  function logVideoAddition(videoTitle: string) {
+  function logVideoAddition(videoTitle: string | undefined) {
     console.info(`      → Successfully added video: ${videoTitle}`);
   }
 
-  function logVideoAdditionFailure(videoTitle: string, reason: string) {
+  function logVideoAdditionFailure(videoTitle: string | undefined, reason: string | undefined) {
     console.warn(`      → Failed to add video: ${videoTitle}`);
     console.warn(`        → Reason: ${reason}`);
   }
 
-  function logChannelListItem(channelId: string, channelTitle: string) {
+  function logChannelListItem(channelId: string | undefined, channelTitle: string | undefined) {
     console.info(`ID: ${channelId} | Title: ${channelTitle}`);
   }
 
-  function logPlaylistListItem(playlistId: string, playlistTitle: string) {
-    console.info(`ID: ${playlistId.padEnd(PLAYLIST_ID_DISPLAY_WIDTH)} | Title: ${playlistTitle}`);
+  function logPlaylistListItem(playlistId: string | undefined, playlistTitle: string | undefined) {
+    console.info(`ID: ${playlistId?.padEnd(PLAYLIST_ID_DISPLAY_WIDTH)} | Title: ${playlistTitle}`);
   }
 
   return {

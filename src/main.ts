@@ -1,3 +1,7 @@
+import {youTubeClient} from './youtube-client.js';
+import {playlistUpdater} from './playlist-updater.js';
+import {logger} from './logger.js';
+
 function addNewVideosToPlaylists() {
   playlistUpdater.run();
 }
