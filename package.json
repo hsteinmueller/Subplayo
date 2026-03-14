@@ -3,7 +3,8 @@
     "login": "clasp login",
     "clone": "clasp clone",
     "install-trigger":  "clasp run-function createTimeDrivenTriggers",
-    "list-apis": "clasp list-apis"
+    "list-apis": "clasp list-apis",
+    "build": "tsc"
   },
   "devDependencies": {
     "@google/clasp": "^3.3.0",
