@@ -3,13 +3,19 @@
   "scripts": {
     "login": "clasp login",
     "clone": "clasp clone",
-    "install-trigger":  "clasp run-function createTimeDrivenTriggers",
+    "install-trigger": "clasp run-function createTimeDrivenTriggers",
     "list-apis": "clasp list-apis",
-    "build": "tsc"
+    "build:tsc": "tsc",
+    "build": "rolldown -c rolldown.config.js",
+    "postbuild": "cp appsscript.json build/",
+    "push": "clasp push",
+    "clean": "rm -rf build",
+    "deploy": "npm run clean && npm run build && npm run push"
   },
   "devDependencies": {
     "@google/clasp": "^3.3.0",
     "@types/google-apps-script": "^2.0.8",
+    "rolldown": "^1.0.0-rc.9",
     "typescript": "^5.9.3"
   }
 }

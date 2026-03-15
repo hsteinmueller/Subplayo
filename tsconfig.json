@@ -3,22 +3,23 @@
   "compilerOptions": {
     // File Layout
     // "rootDir": "./src",
-    "outDir": "./dist",
-
+    "outDir": "./build",
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
-    "module": "nodenext",
+    "module": "esnext",
     "target": "esnext",
-    "types": ["google-apps-script"],
+    "types": [
+      "google-apps-script"
+    ],
     // For nodejs:
     // "lib": ["esnext"],
     // "types": ["node"],
     // and npm install -D @types/node
 
     // Other Outputs
-    "sourceMap": true,
-    "declaration": true,
-    "declarationMap": true,
+    "sourceMap": false,
+    "declaration": false,
+    "declarationMap": false,
     // Stricter Typechecking Options
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
@@ -40,12 +41,10 @@
     "skipLibCheck": true
   },
   "include": [
-    "src",
-    "node_modules/@types/google-apps-script/apis/youtube_v3.d.ts",
-    "node_modules/@types/google-apps-script/apis/youtube_v3.d.ts"
+    "src"
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "build"
   ]
 }

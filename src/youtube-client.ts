@@ -1,4 +1,4 @@
-import {filterShorts} from './helper.js';
+import {helper} from './helper';
 
 type YoutubeListResponse =
   GoogleAppsScript.YouTube.Schema.PlaylistListResponse
@@ -62,7 +62,7 @@ export const youTubeClient = (() => {
     }));
 
     if (!includeShorts) {
-      return filterShorts(items);
+      return helper.filterShorts(items);
     }
     return items;
   }
@@ -121,7 +121,7 @@ export const youTubeClient = (() => {
           return transformOperation(item);
         }) ?? [];
 
-        result.concat(transformed);
+        result.push(...transformed);
       }
     }
 
