@@ -1,3 +1,5 @@
+import {filterShorts} from './helper.js';
+
 type YoutubeListResponse =
   GoogleAppsScript.YouTube.Schema.PlaylistListResponse
   | GoogleAppsScript.YouTube.Schema.SubscriptionListResponse;
@@ -47,17 +49,22 @@ export const youTubeClient = (() => {
     console.error('Youtube not initialized');
   }
 
-  function getLatestVideosByPlaylistId(playlistId: string): Video[] | undefined {
+  function getLatestVideosByPlaylistId(playlistId: string, includeShorts = false): Video[] | undefined {
     const response = YouTube?.PlaylistItems.list('contentDetails,snippet', {
       playlistId: playlistId,
       maxResults: MAX_BATCH
     });
 
-    return response?.items?.map(item => ({
+    const items = response?.items?.map(item => ({
       id: item.snippet?.resourceId?.videoId,
       title: item.snippet?.title,
       publishedAt: item.contentDetails?.videoPublishedAt
     }));
+
+    if (!includeShorts) {
+      return filterShorts(items);
+    }
+    return items;
   }
 
   function getPlaylistsByIds(playlistIds: string[]) {
@@ -154,12 +161,23 @@ export const youTubeClient = (() => {
     return result;
   }
 
+  function getContentDetails(videoIds: string[]): GoogleAppsScript.YouTube.Schema.Video[] {
+    const ids = videoIds.join(',');
+    const details = YouTube?.Videos.list('contentDetails', {
+      id: ids,
+      maxResults: MAX_BATCH,
+    });
+
+    return details?.items ?? [];
+  }
+
   return {
     addVideoToPlaylist,
     getChannelsByIds,
     getLatestVideosByPlaylistId,
     getPlaylistsByIds,
     listUserPlaylists,
-    listUserSubscriptions
+    listUserSubscriptions,
+    getContentDetails
   };
 })();
